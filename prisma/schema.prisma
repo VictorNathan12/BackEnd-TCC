@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senha     String
+  role      String   @default("cliente") // "cliente" | "admin"
+  criadoEm  DateTime @default(now())
+  pedidos   Pedido[]
+}
+
+model Restaurante {
+  id        Int       @id @default(autoincrement())
+  nome      String
+  descricao String?
+  endereco  String
+  telefone  String?
+  criadoEm  DateTime  @default(now())
+  produtos  Produto[]
+  pedidos   Pedido[]
+}
+
+model Produto {
+  id            Int         @id @default(autoincrement())
+  nome          String
+  descricao     String?
+  preco         Float
+  disponivel    Boolean     @default(true)
+  criadoEm      DateTime    @default(now())
+  restauranteId Int
+  restaurante   Restaurante @relation(fields: [restauranteId], references: [id])
+  itensPedido   ItemPedido[]
+}
+
+model Pedido {
+  id            Int         @id @default(autoincrement())
+  status        String      @default("pendente") // "pendente" | "confirmado" | "em_preparo" | "saiu_entrega" | "entregue" | "cancelado"
+  total         Float
+  observacao    String?
+  criadoEm      DateTime    @default(now())
+  atualizadoEm  DateTime    @updatedAt
+  usuarioId     Int
+  restauranteId Int
+  usuario       Usuario     @relation(fields: [usuarioId], references: [id])
+  restaurante   Restaurante @relation(fields: [restauranteId], references: [id])
+  itens         ItemPedido[]
+}
+
+model ItemPedido {
+  id         Int     @id @default(autoincrement())
+  quantidade Int
+  precoUni   Float
+  pedidoId   Int
+  produtoId  Int
+  pedido     Pedido  @relation(fields: [pedidoId], references: [id])
+  produto    Produto @relation(fields: [produtoId], references: [id])
+}
